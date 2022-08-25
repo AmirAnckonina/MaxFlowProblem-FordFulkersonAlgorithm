@@ -4,31 +4,37 @@
 #include "DirectedEdge.h"
 #include <map>
 #include <vector>
+#include <queue>
+#include "GraphCut.h"
 using namespace std;
+
+class MaxFlowProgram;
 
 class DirectedGraph
 {
 private:
+	static constexpr int INFINITE = -1;
 	int m_NumOfVertices;
 	int m_NumOfEdges;
-	vector<list<DirectedEdge>> m_AdjacencyList;
-	///vector<list<DirectedEdge*>> m_AdjacencyList;
-
+	vector<list<DirectedEdge*>> m_AdjacencyList;
 
 public:
-	DirectedGraph(int i_NumOfVertices = 0, int i_NumOfEdges = 0);
-	DirectedGraph(const DirectedGraph& i_GraphToCopy);
+	DirectedGraph(int numOfVertices = 0, int numOfEdges = 0);
+	DirectedGraph(const DirectedGraph& graphToCopy);
 	~DirectedGraph();
-	void MakeEmptyGraph(int i_NumOfVertices);
-	void SetNumOfVertices(int i_NumOfVertices) { m_NumOfVertices = i_NumOfVertices; }
+	void MakeEmptyGraph(int numOfVertices);
+	void SetNumOfVertices(int numOfVertices) { m_NumOfVertices = numOfVertices; }
 	int GetNumOfVertices() { return m_NumOfVertices; }
-	void SetNumOfEdges(int i_NumOfEdges) { m_NumOfEdges = i_NumOfEdges; }
+	void SetNumOfEdges(int numOfEdges) { m_NumOfEdges = numOfEdges; }
 	int GetNumOfEdges() { return m_NumOfEdges; }
-	void AddEdge(int i_SrcVertex, int i_DstVertex, int i_EdgeCapacity);
-	void RemoveEdge(int i_SrcVertex, int i_DstVertex);
-	DirectedEdge& GetEdge(int i_SrcVertex, int i_DstVertex);
-	list<DirectedEdge>& GetVertexAdjList(int i_Vertex);
-	vector<list<DirectedEdge>>& GetGraphAdjList() { return m_AdjacencyList; }
-
+	void AddEdge(int srcVertex, int dstVertex, int edgeCapacity);
+	void RemoveEdge(int srcVertex, int dstVertex);
+	DirectedEdge* GetEdge(int srcVertex, int dstVertex);
+	list<DirectedEdge*>* GetVertexAdjList(int vertex);
+	vector<list<DirectedEdge*>>* GetGraphAdjList() { return &m_AdjacencyList; }
+	void BFS(int srcVertex, vector<int>& D, vector<int>& P);
+	void InitBFSVectors(vector<int>& d, vector<int>& p, int srcVertex);
+	GraphCut ExtractGraphCut(DirectedGraph& residualGraph, int srcVertex, int dstVertex, vector<int>& D);
+	void PrintGraph();
 };
 

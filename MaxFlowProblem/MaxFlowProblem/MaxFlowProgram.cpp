@@ -2,9 +2,14 @@
 
 void MaxFlowProgram::Run()
 {
+    GraphCut minCutBFS, minCutDijkstra;
     BuildDirectedGraphByInput();
-    FordFulkersonBFS();
-    
+    m_GraphG1.PrintGraph();
+    m_GraphG2.PrintGraph();
+    minCutBFS = FordFulkersonBFS();
+    PrintMinCutResult(minCutBFS, Method::BFS);
+    minCutDijkstra = FordFulkersonDijkstra();
+    PrintMinCutResult(minCutDijkstra, Method::Dijkstra);
 }
 
 void MaxFlowProgram::BuildDirectedGraphByInput()
@@ -53,11 +58,11 @@ void MaxFlowProgram::BuildDirectedGraphByInput()
     m_GraphG2 = m_GraphG1;
 }
 
-bool MaxFlowProgram::EdgeInputValidation(int i_SrcVertex, int i_DstVertex, int i_EdgeCapacity, int i_NumOfVertices)
+bool MaxFlowProgram::EdgeInputValidation(int srcVertex, int dstVertex, int edgeCapacity, int numOfVertices)
 {
     bool edgeInputIsValid;
 
-    if (VertexInRange(i_SrcVertex, i_NumOfVertices) && VertexInRange(i_DstVertex, i_NumOfVertices) && i_EdgeCapacity >= 0) 
+    if (VertexInRange(srcVertex, numOfVertices) && VertexInRange(dstVertex, numOfVertices) && edgeCapacity >= 0) 
     {
         edgeInputIsValid = true;
     }
@@ -70,11 +75,11 @@ bool MaxFlowProgram::EdgeInputValidation(int i_SrcVertex, int i_DstVertex, int i
     return edgeInputIsValid;
 }
 
-bool MaxFlowProgram::VertexInRange(int i_Vertex, int i_MaxVertexIdx)
+bool MaxFlowProgram::VertexInRange(int vertex, int maxVertexIdx)
 {
     bool inRange;
 
-    if (i_Vertex >= 0 && i_Vertex <= i_MaxVertexIdx)
+    if (vertex >= 0 && vertex <= maxVertexIdx)
     {
         inRange = true;
     }
@@ -89,108 +94,151 @@ bool MaxFlowProgram::VertexInRange(int i_Vertex, int i_MaxVertexIdx)
     return inRange;
 }
 
-void MaxFlowProgram::FordFulkersonBFS()
+GraphCut MaxFlowProgram::FordFulkersonBFS()
 {
-    /// Run BFS on residual graph and then extract the path from 's' to 't'
-    /// If there's no path -> we're done.
-    /// after each BFS we should update the Graph and the residual graph. 
-    
+    GraphCut graphMinCut;
     DirectedGraph residualGraph = m_GraphG1;
-    vector<int> parent;
-    int maxFlowInGraph;
-    FlowPath returnedPath;
+    vector<int> D;
+    vector<int> P;
 
-    parent = BFS(residualGraph, m_StartingVertexG1);
+    residualGraph.BFS(m_StartingVertexG1, D, P);
 
-    while(parent[m_EndingVertexG1 - 1] != INFINITE)
+    while(D[m_EndingVertexG1 - 1] != INFINITE)
     {
-        returnedPath = ExtractFlowPath(residualGraph, parent, m_StartingVertexG1, m_EndingVertexG1);
-        
+        PostImprovingPathProcedure(m_GraphG1, residualGraph, D, P, m_StartingVertexG1, m_EndingVertexG1);
+        residualGraph.BFS(m_StartingVertexG1, D, P);
+    }
 
-        parent = BFS(residualGraph, m_StartingVertexG1);
+    /// Split the vertices to S and T grps and Calculate the maxFlow recieved at the end of the algorithm
+    graphMinCut = m_GraphG1.ExtractGraphCut(residualGraph, m_StartingVertexG1, m_EndingVertexG1, D);
+
+    return graphMinCut;
+}
+
+GraphCut MaxFlowProgram::FordFulkersonDijkstra()
+{
+    GraphCut graphMinCut;
+    DirectedGraph residualGraph = m_GraphG2;
+    vector<int> D;
+    vector<int> P;
+
+    /// Dijkstra...
+
+    while (D[m_EndingVertexG1 - 1] != INFINITE)
+    {
+        PostImprovingPathProcedure(m_GraphG2, residualGraph, D, P, m_StartingVertexG2, m_EndingVertexG2);
+        /// Dijkstra...
+    }
+
+    /// Split the vertices to S and T grps and Calculate the maxFlow recieved at the end of the algorithm
+    graphMinCut = m_GraphG1.ExtractGraphCut(residualGraph, m_StartingVertexG1, m_EndingVertexG1, D);
+
+    return graphMinCut;
+}
+
+void MaxFlowProgram::UpdateGraphs(DirectedGraph& originalGraph, DirectedGraph& residualGraph, FlowPath& returnedPath)
+{
+    list<DirectedEdge*>::iterator edgesItr;
+    int currSrcVertex, currDstVertex, flowAmount = returnedPath.flowAmount;
+    DirectedEdge* antiParallelEdgeOriginalGraph;
+    DirectedEdge* antiParallelEdgeResidualGraph;
+
+    for (edgesItr = returnedPath.pathEdgesList.begin(); edgesItr != returnedPath.pathEdgesList.end(); edgesItr++)
+    {
+        currSrcVertex = (*edgesItr)->GetSrcVertex();
+        currDstVertex = (*edgesItr)->GetDstVertex();
+        /// Update procedure in the original graph, for a single step in the path.
+        SingleStepOriginalGraphUpdate(originalGraph, flowAmount, currSrcVertex, currDstVertex);
+        /// Update procedure in the residual graph, for a single step in the path.
+        SingleStepResdiualGraphUpdate(residualGraph, flowAmount, currSrcVertex, currDstVertex);
     }
 }
 
-vector<int> MaxFlowProgram::BFS(DirectedGraph& i_ResidualGraph, int i_SrcVertex)
+void MaxFlowProgram::SingleStepOriginalGraphUpdate(DirectedGraph& originalGraph, int flowAmount, int srcVertex, int dstVertex)
 {
-    vector<int> D(i_ResidualGraph.GetNumOfVertices());
-    vector<int> P(i_ResidualGraph.GetNumOfVertices());
-    queue<int> Q;
-    list<DirectedEdge> NbrsListOfCurrVertex;
-    list<DirectedEdge>::iterator nbrsItr;
+    DirectedEdge* antiParallelEdge; 
 
-    /// INIT:
-    InitBFSVectors(D, P, i_SrcVertex);
+    ///Update the flow in the current edge (OrginialGraph)
+    originalGraph.GetEdge(srcVertex, dstVertex)->AddFlow(flowAmount);
 
-    /// EnQueue the starting vertex.
-    Q.push(i_SrcVertex);
-
-    while (!Q.empty())
+    /// if there is anti-parallel edge -> update the flow there.
+    antiParallelEdge = originalGraph.GetEdge(dstVertex, srcVertex);
+    if (antiParallelEdge != nullptr)
     {
-        /// Get Vertex fron the queue.
-        int currVertex = Q.front();
-        Q.pop();
-        NbrsListOfCurrVertex = i_ResidualGraph.GetVertexAdjList(currVertex);
+        antiParallelEdge->AddFlow((-1) * (flowAmount));
+    }
+}
 
-        /// foreach neighbor of the current vertex.
-        for (nbrsItr = NbrsListOfCurrVertex.begin(); nbrsItr != NbrsListOfCurrVertex.end(); nbrsItr++)
-        {
-            int currNbr = nbrsItr->GetDstVertex();
-            if (D[currNbr - 1] == INFINITE)
-            {
-                D[currNbr - 1] = D[currVertex - 1] + 1;
-                P[currNbr - 1] = currVertex;
-                Q.push(currNbr);
-            }
-        }
+void MaxFlowProgram::SingleStepResdiualGraphUpdate(DirectedGraph& residualGraph, int flowAmount, int srcVertex, int dstVertex)
+{
+    DirectedEdge* antiParallelEdge;
+
+    residualGraph.GetEdge(srcVertex, dstVertex)->AddCapcaity((-1) * (flowAmount));
+    if (residualGraph.GetEdge(srcVertex, dstVertex)->GetCapacity() == 0)
+    {
+        residualGraph.RemoveEdge(srcVertex, dstVertex);
     }
 
-    return P;
-}
-
-void MaxFlowProgram::InitBFSVectors(vector<int>& io_D, vector<int>& io_P, int i_SrcVertex)
-{
-    for (int idx = 0; idx < io_D.size(); idx++)
+    antiParallelEdge = residualGraph.GetEdge(dstVertex, srcVertex);
+    if (antiParallelEdge == nullptr) /// If there isn't anti-Parallel edge -> Add it!
     {
-        io_D[idx] = INFINITE;
-        io_P[idx] = NULL;
+        residualGraph.AddEdge(dstVertex, srcVertex, flowAmount);
     }
 
-    io_D[i_SrcVertex - 1] = 0;
+    else /// The anti-parallel edge already exist, so just need to update the residual capacity
+    {
+        antiParallelEdge->AddCapcaity(flowAmount);
+    }
 }
 
-void MaxFlowProgram::UpdateGraphs(DirectedGraph& i_OriginalGraph, DirectedGraph& i_ResidualGraph, FlowPath i_ReturnedPath)
-{
-    /// Extract the minimal flow in the received path
-   /* int currVertex = i_EndingVertex;
-
-    while (i_Parent[currVertex - 1] !=)*/
-
-}
-
-MaxFlowProgram::FlowPath MaxFlowProgram::ExtractFlowPath(DirectedGraph& i_ResidualGraph, vector<int> i_Parent, int i_StartingVertexG1, int i_EndingVertexG1)
+MaxFlowProgram::FlowPath MaxFlowProgram::ExtractFlowPath(DirectedGraph& residualGraph, vector<int>& parent, int startingVertexG1, int endingVertexG1)
 {
     FlowPath resFlowPath;
-    int currEdgeCapacity;
-    int currVertex = i_EndingVertexG1;
-    int minEdgeCapacity = i_ResidualGraph.GetEdge(i_Parent[currVertex - 1], currVertex).GetEdgeCapacity();
+    int minEdgeCapacity = NULL, currEdgeCapacity, currVertex = endingVertexG1;
+    DirectedEdge* currEdge;
 
-    resFlowPath.verticesList.push_front(currVertex);
-    while (currVertex != i_StartingVertexG1)
+    while (currVertex != startingVertexG1)
     {
-        currEdgeCapacity = i_ResidualGraph.GetEdge(i_Parent[currVertex - 1], currVertex).GetEdgeCapacity();
-        if (currEdgeCapacity < minEdgeCapacity)
+        currEdge = residualGraph.GetEdge(parent[currVertex - 1], currVertex);
+        resFlowPath.pathEdgesList.push_front(currEdge);
+        currEdgeCapacity = currEdge->GetCapacity();
+        if (currEdgeCapacity < minEdgeCapacity || minEdgeCapacity == NULL)
         {
             minEdgeCapacity = currEdgeCapacity;
         }
 
-        currVertex = i_Parent[currVertex - 1];
-        resFlowPath.verticesList.push_front(currVertex);
+        currVertex = parent[currVertex - 1];
     }
 
     resFlowPath.flowAmount = minEdgeCapacity;
 
     return resFlowPath;
+}
+
+void MaxFlowProgram::PrintMinCutResult(GraphCut& minCut, Method method)
+{
+    if (method == Method::BFS)
+    {
+        cout << "BFS Method: " << endl;
+    }
+
+    else // Dijkstra
+    {
+        cout << "Greedy Method: " << endl;
+    }
+
+    cout << "Min Cut: ";
+    minCut.PrintCut();
+}
+
+void MaxFlowProgram::PostImprovingPathProcedure(DirectedGraph& originalGraph, DirectedGraph& residualGraph, vector<int>& D, vector<int>& P, int startingVertex, int endingVertex)
+{
+    FlowPath returnedPath;
+
+    returnedPath = ExtractFlowPath(residualGraph, P, startingVertex, endingVertex);
+    UpdateGraphs(m_GraphG1, residualGraph, returnedPath);
+    D.clear();
+    P.clear();
 }
 
 

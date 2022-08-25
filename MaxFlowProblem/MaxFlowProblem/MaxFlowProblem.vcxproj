@@ -141,11 +141,13 @@
   <ItemGroup>
     <ClInclude Include="DirectedEdge.h" />
     <ClInclude Include="DirectedGraph.h" />
+    <ClInclude Include="GraphCut.h" />
     <ClInclude Include="MaxFlowProgram.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DirectedEdge.cpp" />
     <ClCompile Include="DirectedGraph.cpp" />
+    <ClCompile Include="GraphCut.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MaxFlowProgram.cpp" />
   </ItemGroup>

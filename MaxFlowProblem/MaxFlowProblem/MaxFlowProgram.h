@@ -8,17 +8,19 @@
 #include <queue>
 #include "DirectedGraph.h"
 #include "DirectedEdge.h"
+#include "GraphCut.h"
 using namespace std;
 
 class MaxFlowProgram
 {
 
 private:
+	enum class Method {BFS, Dijkstra};
 	static constexpr int INFINITE = -1;
 
 	struct FlowPath
 	{
-		list<int> verticesList;
+		list<DirectedEdge*> pathEdgesList;
 		int flowAmount = 0;
 	};
 
@@ -32,13 +34,15 @@ private:
 public:
 	void Run();
 	void BuildDirectedGraphByInput();
-	bool EdgeInputValidation(int i_SrcVertex, int i_DstVertex, int i_EdgeCapacity, int i_NumOfVertices);
-	bool VertexInRange(int i_Vertex, int i_MaxVertexIdx);
-	void FordFulkersonBFS();
-	vector<int> BFS(DirectedGraph& i_Graph, int i_SrcVertex);
-	void InitBFSVectors(vector<int>& d, vector<int>& p, int i_SrcVertex);
-	void UpdateGraphs(DirectedGraph& i_OriginalGraph, DirectedGraph& i_ResidualGraph, FlowPath i_ReturnedPath);
-	FlowPath ExtractFlowPath(DirectedGraph& i_ResidualGraph, vector<int> i_Parent, int i_StartingVertexG1, int i__EndingVertexG1);
-
+	bool EdgeInputValidation(int srcVertex, int dstVertex, int edgeCapacity, int numOfVertices);
+	bool VertexInRange(int vertex, int maxVertex);
+	GraphCut FordFulkersonBFS();
+	GraphCut FordFulkersonDijkstra();
+	void UpdateGraphs(DirectedGraph& originalGraph, DirectedGraph& residualGraph, FlowPath& returnedPath);
+	void SingleStepOriginalGraphUpdate(DirectedGraph& originalGraph, int flowAmount, int srcVertex, int dstVertex);
+	void SingleStepResdiualGraphUpdate(DirectedGraph& residualGraph, int flowAmount, int srcVertex, int dstVertex);
+	FlowPath ExtractFlowPath(DirectedGraph& residualGraph, vector<int>& parent, int startingVertexG1, int endingVertexG1);
+	void PrintMinCutResult(GraphCut& minCut, Method method);
+	void PostImprovingPathProcedure(DirectedGraph& originalGraph, DirectedGraph& residualGraph, vector<int>& D, vector<int>& P, int startingVertex, int endingVertex);
 };
 

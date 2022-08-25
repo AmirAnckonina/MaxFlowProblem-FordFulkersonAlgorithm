@@ -24,6 +24,9 @@
     <ClInclude Include="MaxFlowProgram.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GraphCut.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DirectedGraph.cpp">
@@ -36,6 +39,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MaxFlowProgram.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphCut.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

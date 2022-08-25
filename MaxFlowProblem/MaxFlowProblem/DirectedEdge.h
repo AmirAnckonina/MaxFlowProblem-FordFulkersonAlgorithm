@@ -11,16 +11,16 @@ private:
 	friend class DirectedGraph;
 
 public:
-	DirectedEdge() {}
-	DirectedEdge(int i_SrcVertex, int i_DstVertex, int i_EdgeCapacity, int i_CurrFlow = 0);
-	void SetSrcVertex(int i_SrcVertex) { m_SrcVertex = i_SrcVertex; }
-	void SetDstVertex(int i_DstVertex) { m_DstVertex = i_DstVertex; }
-	void SetEdgeCapacity(int i_EdgeCapacity) { m_EdgeCapacity = i_EdgeCapacity; }
-	void SetCurrFlow(int i_CurrFlow) { m_CurrFlow = i_CurrFlow; }
+	DirectedEdge() { m_SrcVertex = m_DstVertex = m_EdgeCapacity = m_CurrFlow = 0; }
+	DirectedEdge(int srcVertex, int dstVertex, int edgeCapacity, int currFlow = 0);
+	void SetSrcVertex(int srcVertex) { m_SrcVertex = srcVertex; }
+	void SetDstVertex(int dstVertex) { m_DstVertex = dstVertex; }
+	void SetCapacity(int edgeCapacity) { m_EdgeCapacity = edgeCapacity; }
+	void AddCapcaity(int capacityAmount) { m_EdgeCapacity += capacityAmount; }
+	void AddFlow(int currFlow) { m_CurrFlow += currFlow; }
 	int GetSrcVertex() { return m_SrcVertex; }
 	int GetDstVertex() { return m_DstVertex; }
-	int GetEdgeCapacity() { return m_EdgeCapacity; }
+	int GetCapacity() { return m_EdgeCapacity; }
 	int GetCurrFlow() { return m_CurrFlow; }
-	
 };
 

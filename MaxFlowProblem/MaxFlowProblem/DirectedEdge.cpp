@@ -1,9 +1,9 @@
 #include "DirectedEdge.h"
 
-DirectedEdge::DirectedEdge(int i_SrcVertex, int i_DstVertex, int i_EdgeCapacity, int i_CurrFlow)
+DirectedEdge::DirectedEdge(int srcVertex, int dstVertex, int edgeCapacity, int currFlow)
 {
-	m_SrcVertex = i_SrcVertex;
-	m_DstVertex = i_DstVertex;
-	m_EdgeCapacity = i_EdgeCapacity;
-	m_CurrFlow = i_CurrFlow;
+	m_SrcVertex = srcVertex;
+	m_DstVertex = dstVertex;
+	m_EdgeCapacity = edgeCapacity;
+	m_CurrFlow = currFlow;
 }
