@@ -13,7 +13,6 @@ class MaxFlowProgram;
 class DirectedGraph
 {
 private:
-	static constexpr int INFINITE = -1;
 	int m_NumOfVertices;
 	int m_NumOfEdges;
 	vector<list<DirectedEdge*>> m_AdjacencyList;
@@ -32,9 +31,10 @@ public:
 	DirectedEdge* GetEdge(int srcVertex, int dstVertex);
 	list<DirectedEdge*>* GetVertexAdjList(int vertex);
 	vector<list<DirectedEdge*>>* GetGraphAdjList() { return &m_AdjacencyList; }
-	void BFS(int srcVertex, vector<int>& D, vector<int>& P);
-	void InitBFSVectors(vector<int>& d, vector<int>& p, int srcVertex);
-	GraphCut ExtractGraphCut(DirectedGraph& residualGraph, int srcVertex, int dstVertex, vector<int>& D);
+	void BFS(int srcVertex, vector<int>& dist, vector<int>& parent);
+	void InitVectors(vector<int>& dist, vector<int>& parent, int srcVertex);
+	void Dijkstra(int srcVertex, vector<int>& dist, vector<int>& parent);
+	GraphCut ExtractGraphCut(DirectedGraph& residualGraph, int srcVertex, int dstVertex, vector<int>& dist);
 	void PrintGraph();
 };
 

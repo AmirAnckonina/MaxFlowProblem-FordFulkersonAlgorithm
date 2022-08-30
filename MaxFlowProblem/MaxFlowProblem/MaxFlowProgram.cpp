@@ -98,19 +98,19 @@ GraphCut MaxFlowProgram::FordFulkersonBFS()
 {
     GraphCut graphMinCut;
     DirectedGraph residualGraph = m_GraphG1;
-    vector<int> D;
-    vector<int> P;
+    vector<int> dist;
+    vector<int> parent;
 
-    residualGraph.BFS(m_StartingVertexG1, D, P);
+    residualGraph.BFS(m_StartingVertexG1, dist, parent);
 
-    while(D[m_EndingVertexG1 - 1] != INFINITE)
+    while(dist[m_EndingVertexG1 - 1] != INFINITE)
     {
-        PostImprovingPathProcedure(m_GraphG1, residualGraph, D, P, m_StartingVertexG1, m_EndingVertexG1);
-        residualGraph.BFS(m_StartingVertexG1, D, P);
+        PostImprovingPathProcedure(m_GraphG1, residualGraph, dist, parent, m_StartingVertexG1, m_EndingVertexG1);
+        residualGraph.BFS(m_StartingVertexG1, dist, parent);
     }
 
     /// Split the vertices to S and T grps and Calculate the maxFlow recieved at the end of the algorithm
-    graphMinCut = m_GraphG1.ExtractGraphCut(residualGraph, m_StartingVertexG1, m_EndingVertexG1, D);
+    graphMinCut = m_GraphG1.ExtractGraphCut(residualGraph, m_StartingVertexG1, m_EndingVertexG1, dist);
 
     return graphMinCut;
 }
@@ -119,19 +119,19 @@ GraphCut MaxFlowProgram::FordFulkersonDijkstra()
 {
     GraphCut graphMinCut;
     DirectedGraph residualGraph = m_GraphG2;
-    vector<int> D;
-    vector<int> P;
+    vector<int> dist;
+    vector<int> parent;
 
-    /// Dijkstra...
+    residualGraph.Dijkstra(m_StartingVertexG2, dist, parent);
 
-    while (D[m_EndingVertexG1 - 1] != INFINITE)
+    while (dist[m_EndingVertexG2 - 1] != INFINITE)
     {
-        PostImprovingPathProcedure(m_GraphG2, residualGraph, D, P, m_StartingVertexG2, m_EndingVertexG2);
-        /// Dijkstra...
+        PostImprovingPathProcedure(m_GraphG2, residualGraph, dist, parent, m_StartingVertexG2, m_EndingVertexG2);
+        residualGraph.Dijkstra(m_StartingVertexG2, dist, parent);
     }
 
     /// Split the vertices to S and T grps and Calculate the maxFlow recieved at the end of the algorithm
-    graphMinCut = m_GraphG1.ExtractGraphCut(residualGraph, m_StartingVertexG1, m_EndingVertexG1, D);
+    graphMinCut = m_GraphG2.ExtractGraphCut(residualGraph, m_StartingVertexG1, m_EndingVertexG1, dist);
 
     return graphMinCut;
 }
@@ -191,13 +191,13 @@ void MaxFlowProgram::SingleStepResdiualGraphUpdate(DirectedGraph& residualGraph,
     }
 }
 
-MaxFlowProgram::FlowPath MaxFlowProgram::ExtractFlowPath(DirectedGraph& residualGraph, vector<int>& parent, int startingVertexG1, int endingVertexG1)
+MaxFlowProgram::FlowPath MaxFlowProgram::ExtractFlowPath(DirectedGraph& residualGraph, vector<int>& parent, int startVertex, int endVertex)
 {
     FlowPath resFlowPath;
-    int minEdgeCapacity = NULL, currEdgeCapacity, currVertex = endingVertexG1;
+    int minEdgeCapacity = NULL, currEdgeCapacity, currVertex = endVertex;
     DirectedEdge* currEdge;
 
-    while (currVertex != startingVertexG1)
+    while (currVertex != startVertex)
     {
         currEdge = residualGraph.GetEdge(parent[currVertex - 1], currVertex);
         resFlowPath.pathEdgesList.push_front(currEdge);
@@ -229,16 +229,19 @@ void MaxFlowProgram::PrintMinCutResult(GraphCut& minCut, Method method)
 
     cout << "Min Cut: ";
     minCut.PrintCut();
+    cout << "Max Flow: " << minCut.cutFlow << endl;
 }
 
-void MaxFlowProgram::PostImprovingPathProcedure(DirectedGraph& originalGraph, DirectedGraph& residualGraph, vector<int>& D, vector<int>& P, int startingVertex, int endingVertex)
+void MaxFlowProgram::PostImprovingPathProcedure(DirectedGraph& originalGraph, DirectedGraph& residualGraph, vector<int>& dist, vector<int>& parent, int startingVertex, int endingVertex)
 {
     FlowPath returnedPath;
 
-    returnedPath = ExtractFlowPath(residualGraph, P, startingVertex, endingVertex);
-    UpdateGraphs(m_GraphG1, residualGraph, returnedPath);
-    D.clear();
-    P.clear();
+    returnedPath.pathEdgesList.clear();
+    returnedPath.flowAmount = 0;
+    returnedPath = ExtractFlowPath(residualGraph, parent, startingVertex, endingVertex);
+    UpdateGraphs(originalGraph, residualGraph, returnedPath);
+    dist.clear();
+    parent.clear();
 }
 
 

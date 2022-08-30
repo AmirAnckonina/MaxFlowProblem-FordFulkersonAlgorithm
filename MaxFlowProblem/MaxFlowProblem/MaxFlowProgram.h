@@ -6,6 +6,7 @@
 #include <sstream>
 #include<stdio.h>
 #include <queue>
+#include <limits>
 #include "DirectedGraph.h"
 #include "DirectedEdge.h"
 #include "GraphCut.h"
@@ -13,11 +14,11 @@ using namespace std;
 
 class MaxFlowProgram
 {
+public:
+	static constexpr int INFINITE = numeric_limits<int>::max();
 
 private:
 	enum class Method {BFS, Dijkstra};
-	static constexpr int INFINITE = -1;
-
 	struct FlowPath
 	{
 		list<DirectedEdge*> pathEdgesList;
@@ -43,6 +44,6 @@ public:
 	void SingleStepResdiualGraphUpdate(DirectedGraph& residualGraph, int flowAmount, int srcVertex, int dstVertex);
 	FlowPath ExtractFlowPath(DirectedGraph& residualGraph, vector<int>& parent, int startingVertexG1, int endingVertexG1);
 	void PrintMinCutResult(GraphCut& minCut, Method method);
-	void PostImprovingPathProcedure(DirectedGraph& originalGraph, DirectedGraph& residualGraph, vector<int>& D, vector<int>& P, int startingVertex, int endingVertex);
+	void PostImprovingPathProcedure(DirectedGraph& originalGraph, DirectedGraph& residualGraph, vector<int>& dist, vector<int>& parent, int startingVertex, int endingVertex);
 };
 

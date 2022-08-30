@@ -22,5 +22,5 @@ void GraphCut::PrintCut()
 	}
 
 	TgrpStr[TgrpStr.length() - 2] = '.';
-	cout << TgrpStr;
+	cout << TgrpStr << endl;
 }

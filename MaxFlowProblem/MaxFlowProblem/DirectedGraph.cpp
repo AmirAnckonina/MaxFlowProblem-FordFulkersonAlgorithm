@@ -96,14 +96,15 @@ list<DirectedEdge*>* DirectedGraph::GetVertexAdjList(int vertex)
 }
 
 
-void DirectedGraph::BFS(int srcVertex, vector<int>& D, vector<int>& P)
+void DirectedGraph::BFS(int srcVertex, vector<int>& dist, vector<int>& parent)
 {
 	queue<int> Q;
 	list<DirectedEdge*>* NbrsListOfCurrVertex;
 	list<DirectedEdge*>::iterator nbrsItr;
+	int currNbr;
 
 	/// INIT:
-	InitBFSVectors(D, P, srcVertex);
+	InitVectors(dist, parent, srcVertex);
 
 	/// EnQueue the starting vertex.
 	Q.push(srcVertex);
@@ -118,39 +119,77 @@ void DirectedGraph::BFS(int srcVertex, vector<int>& D, vector<int>& P)
 		/// foreach neighbor of the current vertex.
 		for (nbrsItr = NbrsListOfCurrVertex->begin(); nbrsItr != NbrsListOfCurrVertex->end(); nbrsItr++)
 		{
-			int currNbr = (*nbrsItr)->GetDstVertex();
-			if (D[currNbr - 1] == INFINITE)
+			currNbr = (*nbrsItr)->GetDstVertex();
+			if (dist[currNbr - 1] == MaxFlowProgram::INFINITE)
 			{
-				D[currNbr - 1] = D[currVertex - 1] + 1;
-				P[currNbr - 1] = currVertex;
+				dist[currNbr - 1] = dist[currVertex - 1] + 1;
+				parent[currNbr - 1] = currVertex;
 				Q.push(currNbr);
 			}
 		}
 	}
 }
 
-void DirectedGraph::InitBFSVectors(vector<int>& D, vector<int>& P, int srcVertex)
+void DirectedGraph::InitVectors(vector<int>& dist, vector<int>& parent, int srcVertex)
 {
-	D.resize(m_NumOfVertices);
-	P.resize(m_NumOfVertices);
+	dist.resize(m_NumOfVertices);
+	parent.resize(m_NumOfVertices);
 	for (int idx = 0; idx < m_NumOfVertices; idx++)
 	{
-		D[idx] = INFINITE;
-		P[idx] = NULL;
+		dist[idx] = MaxFlowProgram::INFINITE;
+		parent[idx] = NULL;
 	}
 
-	D[srcVertex - 1] = 0;
+	dist[srcVertex - 1] = 0;
 }
 
-GraphCut DirectedGraph::ExtractGraphCut(DirectedGraph& residualGraph, int srcVertex, int dstVertex, vector<int>& D)
+void DirectedGraph::Dijkstra(int srcVertex, vector<int>& dist, vector<int>& parent)
+{
+	/// pair<int, int> repersent < current dist[v], vertex >
+	/// less is the comporator so the priority queue will act like MaxHeap.
+	priority_queue< pair<int, int>, vector< pair<int, int> >, less< pair<int, int> >> PQ;
+	list<DirectedEdge*>* NbrsListOfCurrVertex;
+	list<DirectedEdge*>::iterator nbrsItr;
+	int currNbr, currEdgeCapacity;
+
+	/// INIT:
+	InitVectors(dist, parent, srcVertex);
+
+	/// Create a pair for the srcVertex + EnQueue.
+	PQ.push(make_pair(dist[srcVertex - 1] ,srcVertex));
+
+
+	while (!PQ.empty())
+	{
+		/// Get Vertex with the maximum dist[] value in queue.
+		int currVertex = PQ.top().second;
+		PQ.pop();
+		NbrsListOfCurrVertex = GetVertexAdjList(currVertex);
+
+		/// foreach neighbor of the current vertex.
+		for (nbrsItr = NbrsListOfCurrVertex->begin(); nbrsItr != NbrsListOfCurrVertex->end(); nbrsItr++)
+		{
+			currNbr = (*nbrsItr)->GetDstVertex();
+			currEdgeCapacity = (*nbrsItr)->GetCapacity();
+			if ( dist[currNbr - 1] > (dist[currVertex - 1] + currEdgeCapacity) ) 
+			{
+				dist[currNbr - 1] = dist[currVertex - 1] + currEdgeCapacity;
+				parent[currNbr - 1] = currVertex;
+				PQ.push(make_pair(dist[currNbr - 1] ,currNbr));
+			}
+		}
+	}
+}
+
+GraphCut DirectedGraph::ExtractGraphCut(DirectedGraph& residualGraph, int srcVertex, int dstVertex, vector<int>& dist)
 {
 	GraphCut gCut;
-	list<DirectedEdge*> SrcVertexNbrsList;
+	list<DirectedEdge*>* SrcVertexNbrsList = GetVertexAdjList(srcVertex);
 	list<DirectedEdge*>::iterator nbrsItr;
 
 	for (int vertex = 1; vertex <= residualGraph.GetNumOfVertices(); vertex++)
 	{
-		if (D[vertex - 1] != INFINITE)
+		if (dist[vertex - 1] != MaxFlowProgram::INFINITE)
 		{
 			gCut.Sgrp.push_back(vertex);
 		}
@@ -162,7 +201,7 @@ GraphCut DirectedGraph::ExtractGraphCut(DirectedGraph& residualGraph, int srcVer
 	}
 
 	gCut.cutFlow = 0;
-	for (nbrsItr = SrcVertexNbrsList.begin(); nbrsItr != SrcVertexNbrsList.end(); nbrsItr++)
+	for (nbrsItr = SrcVertexNbrsList->begin(); nbrsItr != SrcVertexNbrsList->end(); nbrsItr++)
 	{
 		gCut.cutFlow += (*nbrsItr)->GetCurrFlow();
 	}
