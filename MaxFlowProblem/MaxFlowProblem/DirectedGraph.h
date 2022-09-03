@@ -14,19 +14,16 @@ class DirectedGraph
 {
 private:
 	int m_NumOfVertices;
-	int m_NumOfEdges;
 	vector<list<DirectedEdge*>> m_AdjacencyList;
 
 public:
-	DirectedGraph(int numOfVertices = 0, int numOfEdges = 0);
+	DirectedGraph(int numOfVertices = 0);
 	DirectedGraph(const DirectedGraph& graphToCopy);
-	~DirectedGraph();
 	DirectedGraph& operator=(const DirectedGraph& graphToCopy);
+	~DirectedGraph();
 	void MakeEmptyGraph(int numOfVertices);
 	void SetNumOfVertices(int numOfVertices) { m_NumOfVertices = numOfVertices; }
 	int GetNumOfVertices() { return m_NumOfVertices; }
-	void SetNumOfEdges(int numOfEdges) { m_NumOfEdges = numOfEdges; }
-	int GetNumOfEdges() { return m_NumOfEdges; }
 	void AddEdge(int srcVertex, int dstVertex, int edgeCapacity);
 	void RemoveEdge(int srcVertex, int dstVertex);
 	DirectedEdge* GetEdge(int srcVertex, int dstVertex);

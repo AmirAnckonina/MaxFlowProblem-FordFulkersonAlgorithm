@@ -1,10 +1,9 @@
 #include "DirectedGraph.h"
 #include "MaxFlowProgram.h"
 
-DirectedGraph::DirectedGraph(int numOfVertices, int numOfEdges)
+DirectedGraph::DirectedGraph(int numOfVertices)
 {
 	m_NumOfVertices = numOfVertices;
-	m_NumOfEdges = numOfEdges;
 }
 
 DirectedGraph::DirectedGraph(const DirectedGraph& graphToCopy)
@@ -34,7 +33,6 @@ DirectedGraph& DirectedGraph::operator=(const DirectedGraph& graphToCopy)
 	int numOfNbrs;
 
 	MakeEmptyGraph(graphToCopy.m_NumOfVertices);
-	m_NumOfEdges = graphToCopy.m_NumOfEdges;
 
 	/// Copy ***by value*** the map representing the nbr's of each vertex.
 	/// AddEdge allocating a new "DirectedEdge" obj.
@@ -71,17 +69,19 @@ void DirectedGraph::AddEdge(int srcVertex, int dstVertex, int edgeCapacity)
 	m_AdjacencyList[srcVertex - 1].push_back(newEdge);
 }
 
-/// TEST!!!!
 void DirectedGraph::RemoveEdge(int srcVertex, int dstVertex)
 {
 	list<DirectedEdge*>* nbrsList = &m_AdjacencyList[srcVertex - 1];
 	list<DirectedEdge*>::iterator nbrsItr;
+	DirectedEdge* edgeToRemove;
 	
 	for (nbrsItr = nbrsList->begin(); nbrsItr != nbrsList->end(); nbrsItr++)
 	{
 		if ((*nbrsItr)->m_DstVertex == dstVertex)
 		{
+			edgeToRemove = *nbrsItr;
 			nbrsList->remove(*nbrsItr);
+			delete edgeToRemove;
 			break;
 		}
 	}
@@ -124,19 +124,19 @@ void DirectedGraph::BFS(int srcVertex, vector<int>& dist, vector<int>& parent)
 	InitVectors(dist, parent, srcVertex);
 
 	/// EnQueue the starting vertex.
-	Q.push(srcVertex);
+	Q.push(srcVertex); 
 
 	while (!Q.empty())
 	{
 		/// Get Vertex fron the queue.
-		int currVertex = Q.front();
+		int currVertex = Q.front(); 
 		Q.pop();
 		NbrsListOfCurrVertex = GetVertexAdjList(currVertex);
 
 		/// foreach neighbor of the current vertex.
-		for (nbrsItr = NbrsListOfCurrVertex->begin(); nbrsItr != NbrsListOfCurrVertex->end(); nbrsItr++)
+		for (nbrsItr = NbrsListOfCurrVertex->begin(); nbrsItr != NbrsListOfCurrVertex->end(); nbrsItr++) 
 		{
-			currNbr = (*nbrsItr)->GetDstVertex();
+			currNbr = (*nbrsItr)->GetDstVertex(); 
 			if (dist[currNbr - 1] == MaxFlowProgram::INFINITE)
 			{
 				dist[currNbr - 1] = dist[currVertex - 1] + 1;
@@ -149,6 +149,8 @@ void DirectedGraph::BFS(int srcVertex, vector<int>& dist, vector<int>& parent)
 
 void DirectedGraph::InitVectors(vector<int>& dist, vector<int>& parent, int srcVertex)
 {
+	dist.clear();
+	parent.clear();
 	dist.resize(m_NumOfVertices);
 	parent.resize(m_NumOfVertices);
 	for (int idx = 0; idx < m_NumOfVertices; idx++)
@@ -162,7 +164,7 @@ void DirectedGraph::InitVectors(vector<int>& dist, vector<int>& parent, int srcV
 
 void DirectedGraph::Dijkstra(int srcVertex, vector<int>& dist, vector<int>& parent)
 {
-	/// pair<int, int> repersent < current dist[v], vertex >
+	/// pair<int, int> repersent < current dist[v], v >
 	/// less is the comporator so the priority queue will act like MaxHeap.
 	priority_queue< pair<int, int>, vector< pair<int, int> >, less< pair<int, int> >> PQ;
 	list<DirectedEdge*>* NbrsListOfCurrVertex;
@@ -173,26 +175,26 @@ void DirectedGraph::Dijkstra(int srcVertex, vector<int>& dist, vector<int>& pare
 	InitVectors(dist, parent, srcVertex);
 
 	/// Create a pair for the srcVertex + EnQueue.
-	PQ.push(make_pair(dist[srcVertex - 1] ,srcVertex));
+	PQ.push(make_pair(dist[srcVertex - 1] ,srcVertex)); 
 
 
 	while (!PQ.empty())
 	{
 		/// Get Vertex with the maximum dist[] value in queue.
-		int currVertex = PQ.top().second;
+		int currVertex = PQ.top().second; 
 		PQ.pop();
-		NbrsListOfCurrVertex = GetVertexAdjList(currVertex);
+		NbrsListOfCurrVertex = GetVertexAdjList(currVertex); 
 
 		/// foreach neighbor of the current vertex.
 		for (nbrsItr = NbrsListOfCurrVertex->begin(); nbrsItr != NbrsListOfCurrVertex->end(); nbrsItr++)
 		{
-			currNbr = (*nbrsItr)->GetDstVertex();
+			currNbr = (*nbrsItr)->GetDstVertex(); 
 			currEdgeCapacity = (*nbrsItr)->GetCapacity();
-			if ( dist[currNbr - 1] > (dist[currVertex - 1] + currEdgeCapacity) ) 
+			if ( dist[currNbr - 1] > (dist[currVertex - 1] + currEdgeCapacity) )
 			{
 				dist[currNbr - 1] = dist[currVertex - 1] + currEdgeCapacity;
-				parent[currNbr - 1] = currVertex;
-				PQ.push(make_pair(dist[currNbr - 1] ,currNbr));
+				parent[currNbr - 1] = currVertex; 
+				PQ.push(make_pair(dist[currNbr - 1] ,currNbr)); 
 			}
 		}
 	}

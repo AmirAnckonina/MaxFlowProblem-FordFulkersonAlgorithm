@@ -10,6 +10,7 @@
 #include "DirectedGraph.h"
 #include "DirectedEdge.h"
 #include "GraphCut.h"
+
 using namespace std;
 
 class MaxFlowProgram
