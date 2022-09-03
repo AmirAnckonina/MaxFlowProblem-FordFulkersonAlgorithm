@@ -21,6 +21,7 @@ public:
 	DirectedGraph(int numOfVertices = 0, int numOfEdges = 0);
 	DirectedGraph(const DirectedGraph& graphToCopy);
 	~DirectedGraph();
+	DirectedGraph& operator=(const DirectedGraph& graphToCopy);
 	void MakeEmptyGraph(int numOfVertices);
 	void SetNumOfVertices(int numOfVertices) { m_NumOfVertices = numOfVertices; }
 	int GetNumOfVertices() { return m_NumOfVertices; }

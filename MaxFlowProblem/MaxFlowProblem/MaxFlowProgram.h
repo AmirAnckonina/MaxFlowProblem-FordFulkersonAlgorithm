@@ -16,6 +16,7 @@ class MaxFlowProgram
 {
 public:
 	static constexpr int INFINITE = numeric_limits<int>::max();
+	static constexpr int NONE = 0;
 
 private:
 	enum class Method {BFS, Dijkstra};
@@ -35,8 +36,10 @@ private:
 public:
 	void Run();
 	void BuildDirectedGraphByInput();
-	bool EdgeInputValidation(int srcVertex, int dstVertex, int edgeCapacity, int numOfVertices);
+	bool BasicInputValidation(int numOfVertices, int numOfEdges, int startingVertex, int endingVertex);
+	bool NumOfVerticesAndEdgesValidation(int numOfVertices, int numOfEdges);
 	bool VertexInRange(int vertex, int maxVertex);
+	bool EdgeInputValidation(int srcVertex, int dstVertex, int edgeCapacity, int numOfVertices);
 	GraphCut FordFulkersonBFS();
 	GraphCut FordFulkersonDijkstra();
 	void UpdateGraphs(DirectedGraph& originalGraph, DirectedGraph& residualGraph, FlowPath& returnedPath);

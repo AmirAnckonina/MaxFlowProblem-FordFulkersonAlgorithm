@@ -9,6 +9,27 @@ DirectedGraph::DirectedGraph(int numOfVertices, int numOfEdges)
 
 DirectedGraph::DirectedGraph(const DirectedGraph& graphToCopy)
 {
+	/// To avoid code duplication, using the operator= that implementing copy by value.
+	*this = graphToCopy;
+}
+
+DirectedGraph::~DirectedGraph()
+{
+	/// Release all edges allocations.
+
+	for (int vertex = 1; vertex <= m_NumOfVertices; vertex++)
+	{
+		list<DirectedEdge*>* nbrsList = &m_AdjacencyList[vertex - 1];
+		list<DirectedEdge*>::iterator nbrsItr;
+		for (nbrsItr = nbrsList->begin(); nbrsItr != nbrsList->end(); nbrsItr++)
+		{
+			delete (*nbrsItr);
+		}
+	}
+}
+
+DirectedGraph& DirectedGraph::operator=(const DirectedGraph& graphToCopy)
+{
 	int tmpSrcVertex, tmpDstVertex, tmpEdgeCapacity;
 	int numOfNbrs;
 
@@ -29,11 +50,8 @@ DirectedGraph::DirectedGraph(const DirectedGraph& graphToCopy)
 			AddEdge(tmpSrcVertex, tmpDstVertex, tmpEdgeCapacity);
 		}
 	}
-}
 
-DirectedGraph::~DirectedGraph()
-{
-	/// Release all edges allocations.
+	return *this;
 }
 
 void DirectedGraph::MakeEmptyGraph(int numOfVertices)
@@ -63,7 +81,6 @@ void DirectedGraph::RemoveEdge(int srcVertex, int dstVertex)
 	{
 		if ((*nbrsItr)->m_DstVertex == dstVertex)
 		{
-			///nbrsList.erase(nbrsItr);
 			nbrsList->remove(*nbrsItr);
 			break;
 		}
@@ -89,7 +106,7 @@ DirectedEdge* DirectedGraph::GetEdge(int srcVertex, int dstVertex)
 	return edge;
 }
 
-/// TEST!!!!
+
 list<DirectedEdge*>* DirectedGraph::GetVertexAdjList(int vertex)
 {
 	return &m_AdjacencyList[vertex - 1];
@@ -137,7 +154,7 @@ void DirectedGraph::InitVectors(vector<int>& dist, vector<int>& parent, int srcV
 	for (int idx = 0; idx < m_NumOfVertices; idx++)
 	{
 		dist[idx] = MaxFlowProgram::INFINITE;
-		parent[idx] = NULL;
+		parent[idx] = MaxFlowProgram::NONE;
 	}
 
 	dist[srcVertex - 1] = 0;
