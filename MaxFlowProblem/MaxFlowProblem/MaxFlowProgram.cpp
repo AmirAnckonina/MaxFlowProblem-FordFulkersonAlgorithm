@@ -43,7 +43,7 @@ void MaxFlowProgram::BuildDirectedGraphByInput()
         iss.clear();
         getline(cin, rawInputForEdge);
         iss.str(rawInputForEdge);
-        iss >> tmpSrcVertex;
+        iss >> tmpSrcVertex; 
         iss >> tmpDstVertex;
         iss >> tmpEdgeCapacity;
         if (EdgeInputValidation(tmpSrcVertex, tmpDstVertex, tmpEdgeCapacity, numOfVertices))
@@ -51,7 +51,7 @@ void MaxFlowProgram::BuildDirectedGraphByInput()
             m_GraphG1.AddEdge(tmpSrcVertex, tmpDstVertex, tmpEdgeCapacity);
         }
     }
-    
+
     /// Using operator to avoid any depedency of pointers and allocations.
     /// Therefore, copy the graph by value.
     /// G1 is for BFS, G2 is for Ford-Fulkerson.
@@ -184,8 +184,6 @@ void MaxFlowProgram::UpdateGraphs(DirectedGraph& originalGraph, DirectedGraph& r
 {
     list<DirectedEdge*>::iterator edgesItr;
     int currSrcVertex, currDstVertex, flowAmount = returnedPath.flowAmount;
-    DirectedEdge* antiParallelEdgeOriginalGraph;
-    DirectedEdge* antiParallelEdgeResidualGraph;
 
     /// In the improving path that found, for each edge update both the original and the residual graph.
     for (edgesItr = returnedPath.pathEdgesList.begin(); edgesItr != returnedPath.pathEdgesList.end(); edgesItr++)
@@ -222,10 +220,12 @@ void MaxFlowProgram::SingleStepOriginalGraphUpdate(DirectedGraph& originalGraph,
 void MaxFlowProgram::SingleStepResdiualGraphUpdate(DirectedGraph& residualGraph, int flowAmount, int srcVertex, int dstVertex)
 {
     DirectedEdge* antiParallelEdge;
+    DirectedEdge* currEdge;
 
     /// We want to update the capcity of the edge that found as improving one.
-    residualGraph.GetEdge(srcVertex, dstVertex)->AddCapcaity((-1) * (flowAmount));
-    if (residualGraph.GetEdge(srcVertex, dstVertex)->GetCapacity() == 0)
+    currEdge = residualGraph.GetEdge(srcVertex, dstVertex);
+    currEdge->AddCapcaity((-1) * (flowAmount));
+    if (currEdge->GetCapacity() == 0)
     {
         residualGraph.RemoveEdge(srcVertex, dstVertex);
     }
@@ -297,8 +297,6 @@ void MaxFlowProgram::PostImprovingPathProcedure(DirectedGraph& originalGraph, Di
     returnedPath.flowAmount = 0;
     returnedPath = ExtractFlowPath(residualGraph, parent, startingVertex, endingVertex);
     UpdateGraphs(originalGraph, residualGraph, returnedPath);
-    dist.clear();
-    parent.clear();
 }
 
 
